@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -227,5 +228,75 @@ func TestScanAction(t *testing.T) {
 	// Test scan output
 	if out.String() != expectedOut {
 		t.Errorf("Expected output %q, got %q\n", expectedOut, out.String())
+	}
+}
+
+func TestGetPortsSliceSuccess(t *testing.T) {
+	testCases := []struct {
+		name        string
+		portString  string
+		expectedRes []int
+	}{
+		{
+			"Single", "80", []int{80},
+		},
+		{
+			"Range", "1-5", []int{1, 2, 3, 4, 5},
+		},
+		{
+			"Specified", "4,5,80,8080", []int{4, 5, 80, 8080},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// check if error occured
+			res, err := getPortsSlice(tc.portString)
+			if err != nil {
+				t.Errorf("Expected no error, but got %q\n", err)
+			}
+
+			// compare result slice
+			if !slices.Equal(res, tc.expectedRes) {
+				t.Errorf("Expected %q, but got %q", res, tc.expectedRes)
+			}
+		})
+	}
+}
+
+func TestGetPortsSliceFailed(t *testing.T) {
+	testCases := []struct {
+		name        string
+		portString  string
+		expectedRes []int
+	}{
+		{
+			"SingleNegative", "-2", nil,
+		},
+		{
+			"SingleTooBig", "999999", nil,
+		},
+		{
+			"SingleNonNumeric", "a", nil,
+		},
+		{
+			"Range", "2000-5", nil,
+		},
+		{
+			"Specified", "1,a,80,8080", nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := getPortsSlice(tc.portString)
+			if err == nil {
+				t.Error("Expected error, but got nil")
+			}
+
+			if res != nil {
+				t.Errorf("Expected res to be nil, but got %q", res)
+			}
+		})
 	}
 }
