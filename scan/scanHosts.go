@@ -102,8 +102,23 @@ func Run(hl *HostsList, ports []int, network string, timeout int) []Results {
 
 		// TODO: Implement go concurrency for parallel scanning
 		for _, p := range ports {
-			r.PortStates = append(r.PortStates, scanPort(h, p, network, timeout))
+			res := scanPort(h, p, network, timeout)
+			r.PortStates = append(r.PortStates, res)
 		}
+
+		// resChan := make(chan PortState, len(ports))
+
+		// for _, p := range ports {
+		// 	go func(host string, port int, net string, t int) {
+		// 		res := scanPort(host, port, net, t)
+		// 		resChan <- res
+		// 	}(h, p, network, timeout)
+		// }
+
+		// for i := 0; i < len(ports); i++ {
+		// 	portState := <-resChan
+		// 	r.PortStates = append(r.PortStates, portState)
+		// }
 
 		res = append(res, r)
 	}
