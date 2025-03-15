@@ -46,7 +46,12 @@ var scanCmd = &cobra.Command{
 			return err
 		}
 
-		return scanAction(os.Stdout, hostsFile, ports, network, filter)
+		timeout, err := cmd.Flags().GetInt("timeout")
+		if err != nil {
+			return err
+		}
+
+		return scanAction(os.Stdout, hostsFile, ports, network, filter, timeout)
 	},
 }
 
@@ -113,14 +118,14 @@ func getPortsSlice(ps string) ([]int, error) {
 	return ports, nil
 }
 
-func scanAction(out io.Writer, hostsFile string, ports []int, network, filter string) error {
+func scanAction(out io.Writer, hostsFile string, ports []int, network, filter string, timeout int) error {
 	hl := &scan.HostsList{}
 
 	if err := hl.Load(hostsFile); err != nil {
 		return err
 	}
 
-	results := scan.Run(hl, ports, network)
+	results := scan.Run(hl, ports, network, timeout)
 
 	return printResults(out, results, network, filter)
 }
@@ -162,6 +167,7 @@ func init() {
 	scanCmd.Flags().StringP("ports", "p", "22,80,443", "ports to scan")
 	scanCmd.Flags().StringP("network", "n", "tcp", "network type to scan")
 	scanCmd.Flags().String("filter", "none", "filter port status (\"open\" or \"closed\")")
+	scanCmd.Flags().IntP("timeout", "t", 1000, "custom scan timeout (in millisecond)")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

@@ -13,6 +13,7 @@ pScan scan [flags]
   -h, --help             help for scan
   -n, --network string   network type to scan (default "tcp")
   -p, --ports string     ports to scan (default "22,80,443")
+  -t, --timeout int      custom scan timeout (in millisecond) (default 1000)
 ```
 
 ### Options inherited from parent commands

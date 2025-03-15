@@ -23,7 +23,7 @@ func (s state) String() string {
 }
 
 // scanPort performs a port scan on a single TCP port
-func scanPort(host string, port int, network string) PortState {
+func scanPort(host string, port int, network string, timeout int) PortState {
 
 	p := PortState{
 		Port: port,
@@ -33,7 +33,7 @@ func scanPort(host string, port int, network string) PortState {
 	address := net.JoinHostPort(host, fmt.Sprintf("%d", port))
 
 	if network == "tcp" {
-		scanConn, err := net.DialTimeout(network, address, 1*time.Second)
+		scanConn, err := net.DialTimeout(network, address, time.Duration(timeout)*time.Millisecond)
 
 		if err != nil {
 			return p
@@ -61,7 +61,7 @@ func scanPort(host string, port int, network string) PortState {
 
 		res := make([]byte, 64)
 
-		udpConn.SetReadDeadline(time.Now().Add(1 * time.Second))
+		udpConn.SetReadDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
 
 		n, err := udpConn.Read(res)
 		if err != nil {
@@ -86,7 +86,7 @@ type Results struct {
 }
 
 // Run performs a port scan on the hosts list
-func Run(hl *HostsList, ports []int, network string) []Results {
+func Run(hl *HostsList, ports []int, network string, timeout int) []Results {
 	res := make([]Results, 0, len(hl.Hosts))
 
 	for _, h := range hl.Hosts {
@@ -100,8 +100,9 @@ func Run(hl *HostsList, ports []int, network string) []Results {
 			continue
 		}
 
+		// TODO: Implement go concurrency for parallel scanning
 		for _, p := range ports {
-			r.PortStates = append(r.PortStates, scanPort(h, p, network))
+			r.PortStates = append(r.PortStates, scanPort(h, p, network, timeout))
 		}
 
 		res = append(res, r)

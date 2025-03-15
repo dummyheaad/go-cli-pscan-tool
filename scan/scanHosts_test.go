@@ -63,7 +63,7 @@ func TestRunHostFound(t *testing.T) {
 		}
 	}
 
-	res := scan.Run(hl, ports, "tcp")
+	res := scan.Run(hl, ports, "tcp", 1000)
 
 	// Verify results for HostFound test
 	if len(res) != 1 {
@@ -100,7 +100,7 @@ func TestRunHostNotFound(t *testing.T) {
 
 	hl.Add(host)
 
-	res := scan.Run(hl, []int{}, "tcp")
+	res := scan.Run(hl, []int{}, "tcp", 1000)
 
 	// Verify results for HostNotFound test
 	if len(res) != 1 {
