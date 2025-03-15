@@ -24,6 +24,14 @@ Note:
 - PORTS can be speficied as comma separated value (e.g 80,443)
 - PORTS can also be speficied in format a-b (e.g 1-20)
 
+### Auto-completion (only for Bash)
+
+    source <(./pScan completion)
+
+### Generate docs
+
+    ./pScan docs --dir PATH_TO_DIR
+
 ### Explore ./docs for more usage
 
 ## Examples
