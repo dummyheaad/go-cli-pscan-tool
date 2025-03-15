@@ -36,7 +36,17 @@ var scanCmd = &cobra.Command{
 			return err
 		}
 
-		return scanAction(os.Stdout, hostsFile, ports)
+		network, err := cmd.Flags().GetString("network")
+		if err != nil {
+			return err
+		}
+
+		filter, err := cmd.Flags().GetString("filter")
+		if err != nil {
+			return err
+		}
+
+		return scanAction(os.Stdout, hostsFile, ports, network, filter)
 	},
 }
 
@@ -103,20 +113,22 @@ func getPortsSlice(ps string) ([]int, error) {
 	return ports, nil
 }
 
-func scanAction(out io.Writer, hostsFile string, ports []int) error {
+func scanAction(out io.Writer, hostsFile string, ports []int, network, filter string) error {
 	hl := &scan.HostsList{}
 
 	if err := hl.Load(hostsFile); err != nil {
 		return err
 	}
 
-	results := scan.Run(hl, ports)
+	results := scan.Run(hl, ports, network)
 
-	return printResults(out, results)
+	return printResults(out, results, network, filter)
 }
 
-func printResults(out io.Writer, results []scan.Results) error {
+func printResults(out io.Writer, results []scan.Results, network, filter string) error {
 	message := ""
+
+	message += fmt.Sprintf("=== %s port scanning result ===\n\n", network)
 
 	for _, r := range results {
 		message += fmt.Sprintf("%s:", r.Host)
@@ -129,7 +141,11 @@ func printResults(out io.Writer, results []scan.Results) error {
 		message += fmt.Sprintln()
 
 		for _, p := range r.PortStates {
-			message += fmt.Sprintf("\t%d: %s\n", p.Port, p.Open)
+			if filter == "none" {
+				message += fmt.Sprintf("\t%d: %s\n", p.Port, p.Open)
+			} else if filter == p.Open.String() {
+				message += fmt.Sprintf("\t%d: %s\n", p.Port, p.Open)
+			}
 		}
 
 		message += fmt.Sprintln()
@@ -144,6 +160,8 @@ func init() {
 	rootCmd.AddCommand(scanCmd)
 
 	scanCmd.Flags().StringP("ports", "p", "22,80,443", "ports to scan")
+	scanCmd.Flags().StringP("network", "n", "tcp", "network type to scan")
+	scanCmd.Flags().String("filter", "none", "filter port status (\"open\" or \"closed\")")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

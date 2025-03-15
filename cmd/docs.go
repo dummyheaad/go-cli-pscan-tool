@@ -17,7 +17,7 @@ import (
 // docsCmd represents the docs command
 var docsCmd = &cobra.Command{
 	Use:   "docs",
-	Short: "Generate documentatoin for your command",
+	Short: "Generate documentation for your command",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, err := cmd.Flags().GetString("dir")
 		if err != nil {
@@ -47,7 +47,6 @@ func init() {
 	rootCmd.AddCommand(docsCmd)
 
 	docsCmd.Flags().StringP("dir", "d", "", "Destination directory for docs")
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

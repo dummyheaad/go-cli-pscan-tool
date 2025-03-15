@@ -23,7 +23,7 @@ func (s state) String() string {
 }
 
 // scanPort performs a port scan on a single TCP port
-func scanPort(host string, port int) PortState {
+func scanPort(host string, port int, network string) PortState {
 
 	p := PortState{
 		Port: port,
@@ -32,14 +32,49 @@ func scanPort(host string, port int) PortState {
 
 	address := net.JoinHostPort(host, fmt.Sprintf("%d", port))
 
-	scanConn, err := net.DialTimeout("tcp", address, 1*time.Second)
+	if network == "tcp" {
+		scanConn, err := net.DialTimeout(network, address, 1*time.Second)
 
-	if err != nil {
-		return p
+		if err != nil {
+			return p
+		}
+
+		scanConn.Close()
+		p.Open = true
+	} else if network == "udp" {
+		udpAddr, err := net.ResolveUDPAddr(network, address)
+		if err != nil {
+			return p
+		}
+
+		udpConn, err := net.DialUDP(network, nil, udpAddr)
+		if err != nil {
+			return p
+		}
+
+		payload := []byte("Hello")
+
+		_, err = udpConn.Write(payload)
+		if err != nil {
+			return p
+		}
+
+		res := make([]byte, 64)
+
+		udpConn.SetReadDeadline(time.Now().Add(1 * time.Second))
+
+		n, err := udpConn.Read(res)
+		if err != nil {
+			return p
+		}
+
+		if n > 0 {
+			p.Open = true
+		}
+
+		udpConn.Close()
 	}
 
-	scanConn.Close()
-	p.Open = true
 	return p
 }
 
@@ -51,7 +86,7 @@ type Results struct {
 }
 
 // Run performs a port scan on the hosts list
-func Run(hl *HostsList, ports []int) []Results {
+func Run(hl *HostsList, ports []int, network string) []Results {
 	res := make([]Results, 0, len(hl.Hosts))
 
 	for _, h := range hl.Hosts {
@@ -66,7 +101,7 @@ func Run(hl *HostsList, ports []int) []Results {
 		}
 
 		for _, p := range ports {
-			r.PortStates = append(r.PortStates, scanPort(h, p))
+			r.PortStates = append(r.PortStates, scanPort(h, p, network))
 		}
 
 		res = append(res, r)

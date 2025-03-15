@@ -134,6 +134,8 @@ func TestIntegration(t *testing.T) {
 	expectedOut += fmt.Sprintf("Deleted host: %s\n", delHost)
 	expectedOut += strings.Join(hostsEnd, "\n")
 	expectedOut += fmt.Sprintln()
+	expectedOut += fmt.Sprintln("=== tcp port scanning result ===")
+	expectedOut += fmt.Sprintln()
 	for _, v := range hostsEnd {
 		expectedOut += fmt.Sprintf("%s: Host not found\n", v)
 		expectedOut += fmt.Sprintln()
@@ -160,7 +162,7 @@ func TestIntegration(t *testing.T) {
 	}
 
 	// Scan hosts
-	if err := scanAction(&out, tf, nil); err != nil {
+	if err := scanAction(&out, tf, nil, "tcp", "none"); err != nil {
 		t.Fatalf("Expected no error, got %q\n", err)
 	}
 
@@ -210,9 +212,10 @@ func TestScanAction(t *testing.T) {
 	}
 
 	// Define expected output for scan action
-	expectedOut := fmt.Sprintln("localhost:")
+	expectedOut := fmt.Sprintln("=== tcp port scanning result ===")
+	expectedOut += fmt.Sprintln()
+	expectedOut += fmt.Sprintln("localhost:")
 	expectedOut += fmt.Sprintf("\t%d: open\n", ports[0])
-	expectedOut += fmt.Sprintf("\t%d: closed\n", ports[1])
 	expectedOut += fmt.Sprintln()
 	expectedOut += fmt.Sprintln("unknownhostoutthere: Host not found")
 	expectedOut += fmt.Sprintln()
@@ -221,7 +224,7 @@ func TestScanAction(t *testing.T) {
 	var out bytes.Buffer
 
 	// Execute scan and capture output
-	if err := scanAction(&out, tf, ports); err != nil {
+	if err := scanAction(&out, tf, ports, "tcp", "open"); err != nil {
 		t.Fatalf("Expected no error, got %q\n", err)
 	}
 
