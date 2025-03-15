@@ -24,6 +24,8 @@ Note:
 - PORTS can be speficied as comma separated value (e.g 80,443)
 - PORTS can also be speficied in format a-b (e.g 1-20)
 
+### Explore ./docs for more usage
+
 ## Examples
     ./pScan.exe hosts add localhost
     ./pScan.exe scan --ports 22,443,8080
